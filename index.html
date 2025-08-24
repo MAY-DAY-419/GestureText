@@ -19,7 +19,6 @@
     </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Custom styles that can't be done with Tailwind */
         .camera-feed {
             aspect-ratio: 4/3;
             background-color: #f3f4f6;
@@ -203,7 +202,6 @@
                 </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Team Member 1 -->
                     <div class="bg-gray-50 dark:bg-gray-700 p-6 rounded-lg">
                         <div class="flex items-center mb-4">
                             <div class="w-16 h-16 rounded-full bg-accent flex items-center justify-center text-white text-2xl font-bold mr-4">
@@ -218,8 +216,6 @@
                             Specializes in computer vision and gesture recognition algorithms. Leads our machine learning initiatives.
                         </p>
                     </div>
-                    
-                    <!-- Team Member 2 -->
                     <div class="bg-gray-50 dark:bg-gray-700 p-6 rounded-lg">
                         <div class="flex items-center mb-4">
                             <div class="w-16 h-16 rounded-full bg-accent flex items-center justify-center text-white text-2xl font-bold mr-4">
@@ -255,16 +251,12 @@
         aboutUsBtn.addEventListener('click', () => {
             teamModal.classList.remove('hidden');
         });
-        
         closeTeamModal.addEventListener('click', () => {
             teamModal.classList.add('hidden');
         });
-        
         closeTeamModalBtn.addEventListener('click', () => {
             teamModal.classList.add('hidden');
         });
-        
-        // Close modal when clicking outside
         teamModal.addEventListener('click', (e) => {
             if (e.target === teamModal) {
                 teamModal.classList.add('hidden');
@@ -274,19 +266,16 @@
         // Dark mode toggle
         const darkModeToggle = document.getElementById('darkModeToggle');
         const html = document.documentElement;
-        
-        // Check for saved user preference or use system preference
         if (localStorage.getItem('darkMode') === 'true' || 
             (!localStorage.getItem('darkMode') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             html.classList.add('dark');
         }
-        
         darkModeToggle.addEventListener('click', () => {
             html.classList.toggle('dark');
             localStorage.setItem('darkMode', html.classList.contains('dark'));
         });
 
-        // Camera functionality (simulated for this demo)
+        // Camera functionality
         const startCameraBtn = document.getElementById('startCameraBtn');
         const stopCameraBtn = document.getElementById('stopCameraBtn');
         const toggleCameraBtn = document.getElementById('toggleCameraBtn');
@@ -300,7 +289,6 @@
         const statusIndicator = document.getElementById('statusIndicator');
         const statusText = document.getElementById('statusText');
 
-        // Simulated gesture recognition output
         const sampleOutputs = [
             "Hello, how are you?",
             "Thank you for using GestureText",
@@ -309,83 +297,23 @@
             "Gesture recognition technology is transforming communication"
         ];
 
-        let cameraInterval;
         let recognitionInterval;
+        let stream;
 
-        startCameraBtn.addEventListener('click', () => {
-            // Simulate camera starting
-            cameraPlaceholder.classList.add('hidden');
-            cameraView.classList.remove('hidden');
-            startCameraBtn.classList.add('hidden');
-            stopCameraBtn.classList.remove('hidden');
-            toggleCameraBtn.classList.remove('hidden');
-            captureBtn.classList.remove('hidden');
-            
-            // Update status
-            statusIndicator.classList.remove('bg-gray-400');
-            statusIndicator.classList.add('bg-green-400');
-            statusText.textContent = "Camera active - recognizing gestures";
-
-            // Simulate random gesture recognition
-            let outputIndex = 0;
-            recognitionInterval = setInterval(() => {
-                outputText.textContent = sampleOutputs[outputIndex];
-                outputIndex = (outputIndex + 1) % sampleOutputs.length;
-            }, 3000);
-        });
-
-        stopCameraBtn.addEventListener('click', () => {
-            // Simulate camera stopping
-            cameraPlaceholder.classList.remove('hidden');
-            cameraView.classList.add('hidden');
-            startCameraBtn.classList.remove('hidden');
-            stopCameraBtn.classList.add('hidden');
-            toggleCameraBtn.classList.add('hidden');
-            captureBtn.classList.add('hidden');
-            
-            // Update status
-            statusIndicator.classList.remove('bg-green-400');
-            statusIndicator.classList.add('bg-gray-400');
-            statusText.textContent = "Camera stopped";
-            
-            clearInterval(recognitionInterval);
-        });
-
-        toggleCameraBtn.addEventListener('click', () => {
-            // Simulate camera switch
-            cameraView.classList.toggle('hidden');
-            cameraCanvas.classList.toggle('hidden');
-        });
-
-        captureBtn.addEventListener('click', () => {
-            // Simulate photo capture
-            cameraView.classList.add('hidden');
-            cameraCanvas.classList.remove('hidden');
-            setTimeout(() => {
+        startCameraBtn.addEventListener('click', async () => {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                cameraView.srcObject = stream;
+                
+                cameraPlaceholder.classList.add('hidden');
                 cameraView.classList.remove('hidden');
-                cameraCanvas.classList.add('hidden');
-            }, 1000);
-        });
+                startCameraBtn.classList.add('hidden');
+                stopCameraBtn.classList.remove('hidden');
+                toggleCameraBtn.classList.remove('hidden');
+                captureBtn.classList.remove('hidden');
 
-        copyTextBtn.addEventListener('click', () => {
-            // Copy text to clipboard
-            navigator.clipboard.writeText(outputText.textContent).then(() => {
-                const originalText = copyTextBtn.innerHTML;
-                copyTextBtn.innerHTML = '<i class="fas fa-check mr-1"></i>Copied!';
-                setTimeout(() => {
-                    copyTextBtn.innerHTML = originalText;
-                }, 2000);
-            });
-        });
+                statusIndicator.classList.remove('bg-gray-400');
+                statusIndicator.classList.add('bg-green-400');
+                statusText.textContent = "Camera active - recognizing gestures";
 
-        clearTextBtn.addEventListener('click', () => {
-            outputText.textContent = "";
-        });
-
-        // Responsive adjustments
-        window.addEventListener('resize', () => {
-            // Any responsive adjustments can be handled here
-        });
-    </script>
-</body>
-</html>
+                let
