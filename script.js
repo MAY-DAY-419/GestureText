@@ -122,4 +122,3 @@ clearTextBtn.addEventListener('click', () => { outputText.textContent = ""; });
 window.addEventListener('resize', () => {
   // Future responsive adjustments can go here
 });
-
