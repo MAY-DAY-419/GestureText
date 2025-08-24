@@ -1,320 +1,219 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GestureText | Real-time Gesture to Text Conversion</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        accent: '#3B82F6',
-                    }
-                }
-            }
-        }
-    </script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        .camera-feed {
-            aspect-ratio: 4/3;
-            background-color: #f3f4f6;
-        }
-        .dark .camera-feed {
-            background-color: #1f2937;
-        }
-        .text-output {
-            min-height: 200px;
-        }
-        @media (max-width: 768px) {
-            .split-layout {
-                flex-direction: column;
-            }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gesturetext Camera</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f0f0f0;
+      color: #333;
+    }
+    header {
+      background: #333;
+      color: #fff;
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 1.2rem;
+    }
+    header nav button {
+      margin-left: 1rem;
+      padding: 0.5rem 1rem;
+      border: none;
+      background: #555;
+      color: #fff;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    header nav button:hover {
+      background: #777;
+    }
+    main {
+      padding: 1rem;
+    }
+    #cameraContainer {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 1rem;
+    }
+    video, canvas {
+      width: 100%;
+      max-width: 500px;
+      border: 2px solid #333;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      background: #000;
+    }
+    #outputText {
+      margin-top: 1rem;
+      font-size: 1.2rem;
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+      background: #fff;
+      width: 100%;
+      max-width: 500px;
+      min-height: 50px;
+      border-radius: 4px;
+    }
+    .dark-mode {
+      background: #121212;
+      color: #f0f0f0;
+    }
+    .dark-mode header {
+      background: #1e1e1e;
+    }
+    .dark-mode #outputText {
+      background: #333;
+      border-color: #555;
+      color: #fff;
+    }
+    /* Modal styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.5);
+    }
+    .modal-content {
+      background-color: #fefefe;
+      margin: 15% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%;
+      max-width: 400px;
+      border-radius: 8px;
+    }
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .close:hover {
+      color: black;
+    }
+  </style>
 </head>
-<body class="bg-white dark:bg-gray-900 transition-colors duration-200">
-    <div class="min-h-screen flex flex-col">
-        <!-- Header -->
-        <header class="py-6 px-4 sm:px-6 lg:px-8 border-b border-gray-200 dark:border-gray-700">
-            <div class="flex justify-between items-center max-w-7xl mx-auto">
-                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
-                    <span class="text-accent">Gesture</span>Text
-                </h1>
-                <div class="flex items-center space-x-4">
-                    <button id="darkModeToggle" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
-                        <i class="fas fa-moon text-gray-700 dark:text-gray-300 dark:hidden"></i>
-                        <i class="fas fa-sun text-yellow-300 hidden dark:block"></i>
-                    </button>
-                    <button class="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition mr-2">
-                        <i class="fas fa-cog mr-2"></i>Settings
-                    </button>
-                    <button id="aboutUsBtn" class="px-4 py-2 bg-accent text-white rounded-md hover:bg-blue-600 transition">
-                        <i class="fas fa-users mr-2"></i>About Us
-                    </button>
-                </div>
-            </div>
-        </header>
-
-        <!-- Main Content -->
-        <main class="flex-grow p-4 sm:p-6 lg:p-8">
-            <div class="max-w-7xl mx-auto">
-                <div class="split-layout flex flex-col md:flex-row gap-6">
-                    <!-- Left Section - Camera Feed -->
-                    <div class="flex-1">
-                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden transition-all duration-200">
-                            <div class="p-4 border-b border-gray-200 dark:border-gray-700">
-                                <h2 class="text-lg font-medium text-gray-900 dark:text-white">
-                                    <i class="fas fa-video mr-2 text-accent"></i>Camera Feed
-                                </h2>
-                            </div>
-                            <div class="p-4">
-                                <div class="camera-feed rounded-lg overflow-hidden flex items-center justify-center relative">
-                                    <video id="cameraView" autoplay playsinline class="w-full h-full object-cover hidden"></video>
-                                    <canvas id="cameraCanvas" class="w-full h-full object-cover hidden"></canvas>
-                                    <div id="cameraPlaceholder" class="text-center p-6">
-                                        <i class="fas fa-camera text-4xl text-gray-400 dark:text-gray-500 mb-3"></i>
-                                        <p class="text-gray-500 dark:text-gray-400">Camera feed will appear here</p>
-                                        <button id="startCameraBtn" class="mt-4 px-4 py-2 bg-accent text-white rounded-md hover:bg-blue-600 transition">
-                                            <i class="fas fa-play mr-2"></i>Start Camera
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="mt-4 flex justify-between">
-                                    <button id="toggleCameraBtn" class="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition hidden">
-                                        <i class="fas fa-sync-alt mr-1"></i>Switch Camera
-                                    </button>
-                                    <div class="flex space-x-2">
-                                        <button id="captureBtn" class="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition hidden">
-                                            <i class="fas fa-camera mr-1"></i>Capture
-                                        </button>
-                                        <button id="stopCameraBtn" class="px-3 py-1.5 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-200 rounded-md hover:bg-red-200 dark:hover:bg-red-800 transition hidden">
-                                            <i class="fas fa-stop mr-1"></i>Stop
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Right Section - Text Output -->
-                    <div class="flex-1">
-                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden transition-all duration-200 h-full">
-                            <div class="p-4 border-b border-gray-200 dark:border-gray-700">
-                                <h2 class="text-lg font-medium text-gray-900 dark:text-white">
-                                    <i class="fas fa-keyboard mr-2 text-accent"></i>Text Output
-                                </h2>
-                            </div>
-                            <div class="p-4 h-full">
-                                <div class="text-output bg-gray-50 dark:bg-gray-700 rounded-lg p-4 h-64 overflow-y-auto">
-                                    <p id="outputText" class="text-gray-800 dark:text-gray-200">Recognized text will appear here...</p>
-                                </div>
-                                <div class="mt-4 flex justify-between items-center">
-                                    <div class="text-sm text-gray-500 dark:text-gray-400">
-                                        <span id="statusIndicator" class="inline-block w-2 h-2 rounded-full bg-gray-400 mr-1"></span>
-                                        <span id="statusText">Waiting for camera...</span>
-                                    </div>
-                                    <div class="flex space-x-2">
-                                        <button id="copyTextBtn" class="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition">
-                                            <i class="fas fa-copy mr-1"></i>Copy
-                                        </button>
-                                        <button id="clearTextBtn" class="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition">
-                                            <i class="fas fa-trash-alt mr-1"></i>Clear
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Info Section -->
-                <div class="mt-8 bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden transition-all duration-200">
-                    <div class="p-4 border-b border-gray-200 dark:border-gray-700">
-                        <h2 class="text-lg font-medium text-gray-900 dark:text-white">
-                            <i class="fas fa-info-circle mr-2 text-accent"></i>How It Works
-                        </h2>
-                    </div>
-                    <div class="p-4">
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div class="p-4 rounded-lg bg-gray-50 dark:bg-gray-700">
-                                <div class="text-accent text-2xl mb-2">
-                                    <i class="fas fa-video"></i>
-                                </div>
-                                <h3 class="font-medium text-gray-900 dark:text-white mb-1">1. Camera Setup</h3>
-                                <p class="text-gray-600 dark:text-gray-300 text-sm">Allow camera access and position your hands clearly in view.</p>
-                            </div>
-                            <div class="p-4 rounded-lg bg-gray-50 dark:bg-gray-700">
-                                <div class="text-accent text-2xl mb-2">
-                                    <i class="fas fa-hand-paper"></i>
-                                </div>
-                                <h3 class="font-medium text-gray-900 dark:text-white mb-1">2. Make Gestures</h3>
-                                <p class="text-gray-600 dark:text-gray-300 text-sm">Use standard sign language gestures or custom gestures you've trained.</p>
-                            </div>
-                            <div class="p-4 rounded-lg bg-gray-50 dark:bg-gray-700">
-                                <div class="text-accent text-2xl mb-2">
-                                    <i class="fas fa-font"></i>
-                                </div>
-                                <h3 class="font-medium text-gray-900 dark:text-white mb-1">3. Get Text</h3>
-                                <p class="text-gray-600 dark:text-gray-300 text-sm">See real-time text conversion that you can copy or save.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
-
-        <!-- Footer -->
-        <footer class="py-4 px-4 sm:px-6 lg:px-8 border-t border-gray-200 dark:border-gray-700">
-            <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center">
-                <p class="text-gray-500 dark:text-gray-400 text-sm">
-                    &copy; 2023 GestureText. All rights reserved.
-                </p>
-                <div class="mt-2 md:mt-0 flex space-x-4">
-                    <a href="#" class="text-gray-500 dark:text-gray-400 hover:text-accent transition text-sm">
-                        <i class="fas fa-shield-alt mr-1"></i>Privacy
-                    </a>
-                    <a href="#" class="text-gray-500 dark:text-gray-400 hover:text-accent transition text-sm">
-                        <i class="fas fa-file-alt mr-1"></i>Terms
-                    </a>
-                    <a href="#" class="text-gray-500 dark:text-gray-400 hover:text-accent transition text-sm">
-                        <i class="fas fa-question-circle mr-1"></i>Help
-                    </a>
-                </div>
-            </div>
-        </footer>
+<body>
+  <header>
+    <h1>Gesturetext Camera</h1>
+    <nav>
+      <button id="aboutBtn">About Us</button>
+      <button id="settingsBtn">Settings</button>
+      <button id="darkModeBtn">Night Mode</button>
+    </nav>
+  </header>
+  <main>
+    <button id="startCameraBtn">Start Camera</button>
+    <div id="cameraContainer">
+      <video id="cameraView" autoplay playsinline></video>
+      <canvas id="cameraCanvas" style="display:none;"></canvas>
+      <div id="outputText">Recognized text will appear here...</div>
     </div>
+  </main>
 
-    <!-- Team Modal -->
-    <div id="teamModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 hidden">
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div class="p-6">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-2xl font-bold text-gray-900 dark:text-white">
-                        <i class="fas fa-users text-accent mr-2"></i>Our Team
-                    </h3>
-                    <button id="closeTeamModal" class="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300">
-                        <i class="fas fa-times text-xl"></i>
-                    </button>
-                </div>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="bg-gray-50 dark:bg-gray-700 p-6 rounded-lg">
-                        <div class="flex items-center mb-4">
-                            <div class="w-16 h-16 rounded-full bg-accent flex items-center justify-center text-white text-2xl font-bold mr-4">
-                                JD
-                            </div>
-                            <div>
-                                <h4 class="text-lg font-semibold text-gray-900 dark:text-white">John Doe</h4>
-                                <p class="text-accent">AI/ML Engineer</p>
-                            </div>
-                        </div>
-                        <p class="text-gray-600 dark:text-gray-300">
-                            Specializes in computer vision and gesture recognition algorithms. Leads our machine learning initiatives.
-                        </p>
-                    </div>
-                    <div class="bg-gray-50 dark:bg-gray-700 p-6 rounded-lg">
-                        <div class="flex items-center mb-4">
-                            <div class="w-16 h-16 rounded-full bg-accent flex items-center justify-center text-white text-2xl font-bold mr-4">
-                                JS
-                            </div>
-                            <div>
-                                <h4 class="text-lg font-semibold text-gray-900 dark:text-white">Jane Smith</h4>
-                                <p class="text-accent">Frontend Developer</p>
-                            </div>
-                        </div>
-                        <p class="text-gray-600 dark:text-gray-300">
-                            Designs and implements user interfaces with a focus on accessibility and intuitive user experiences.
-                        </p>
-                    </div>
-                </div>
-                
-                <div class="mt-8 text-center">
-                    <button id="closeTeamModalBtn" class="px-6 py-2 bg-accent text-white rounded-md hover:bg-blue-600 transition">
-                        Close
-                    </button>
-                </div>
-            </div>
-        </div>
+  <!-- About Modal -->
+  <div id="aboutModal" class="modal">
+    <div class="modal-content">
+      <span class="close" id="aboutClose">&times;</span>
+      <h2>About Us</h2>
+      <p>This app demonstrates real-time gesture recognition using your camera and converts them into text.</p>
     </div>
+  </div>
 
-    <script>
-        // Team Modal functionality
-        const aboutUsBtn = document.getElementById('aboutUsBtn');
-        const teamModal = document.getElementById('teamModal');
-        const closeTeamModal = document.getElementById('closeTeamModal');
-        const closeTeamModalBtn = document.getElementById('closeTeamModalBtn');
-        
-        aboutUsBtn.addEventListener('click', () => {
-            teamModal.classList.remove('hidden');
-        });
-        closeTeamModal.addEventListener('click', () => {
-            teamModal.classList.add('hidden');
-        });
-        closeTeamModalBtn.addEventListener('click', () => {
-            teamModal.classList.add('hidden');
-        });
-        teamModal.addEventListener('click', (e) => {
-            if (e.target === teamModal) {
-                teamModal.classList.add('hidden');
-            }
-        });
+  <!-- Settings Modal -->
+  <div id="settingsModal" class="modal">
+    <div class="modal-content">
+      <span class="close" id="settingsClose">&times;</span>
+      <h2>Settings</h2>
+      <p>Settings can be configured here.</p>
+    </div>
+  </div>
 
-        // Dark mode toggle
-        const darkModeToggle = document.getElementById('darkModeToggle');
-        const html = document.documentElement;
-        if (localStorage.getItem('darkMode') === 'true' || 
-            (!localStorage.getItem('darkMode') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            html.classList.add('dark');
+  <script>
+    const startCameraBtn = document.getElementById('startCameraBtn');
+    const cameraView = document.getElementById('cameraView');
+    const outputText = document.getElementById('outputText');
+    const aboutBtn = document.getElementById('aboutBtn');
+    const settingsBtn = document.getElementById('settingsBtn');
+    const darkModeBtn = document.getElementById('darkModeBtn');
+    const aboutModal = document.getElementById('aboutModal');
+    const settingsModal = document.getElementById('settingsModal');
+    const aboutClose = document.getElementById('aboutClose');
+    const settingsClose = document.getElementById('settingsClose');
+    let stream = null;
+    let recognitionInterval = null;
+
+    // Start/Stop Camera
+    startCameraBtn.addEventListener('click', async () => {
+      if (!stream) {
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({ video: true });
+          cameraView.srcObject = stream;
+          startCameraBtn.textContent = 'Stop Camera';
+          // Simulated text recognition updates
+          recognitionInterval = setInterval(() => {
+            outputText.textContent = 'Recognized text at ' + new Date().toLocaleTimeString();
+          }, 3000);
+        } catch (err) {
+          alert('Error accessing camera: ' + err);
         }
-        darkModeToggle.addEventListener('click', () => {
-            html.classList.toggle('dark');
-            localStorage.setItem('darkMode', html.classList.contains('dark'));
-        });
+      } else {
+        // Stop the camera
+        stream.getTracks().forEach(track => track.stop());
+        cameraView.srcObject = null;
+        stream = null;
+        startCameraBtn.textContent = 'Start Camera';
+        clearInterval(recognitionInterval);
+        outputText.textContent = 'Recognized text will appear here...';
+      }
+    });
 
-        // Camera functionality
-        const startCameraBtn = document.getElementById('startCameraBtn');
-        const stopCameraBtn = document.getElementById('stopCameraBtn');
-        const toggleCameraBtn = document.getElementById('toggleCameraBtn');
-        const captureBtn = document.getElementById('captureBtn');
-        const cameraView = document.getElementById('cameraView');
-        const cameraCanvas = document.getElementById('cameraCanvas');
-        const cameraPlaceholder = document.getElementById('cameraPlaceholder');
-        const outputText = document.getElementById('outputText');
-        const copyTextBtn = document.getElementById('copyTextBtn');
-        const clearTextBtn = document.getElementById('clearTextBtn');
-        const statusIndicator = document.getElementById('statusIndicator');
-        const statusText = document.getElementById('statusText');
+    // About Us modal
+    aboutBtn.addEventListener('click', () => {
+      aboutModal.style.display = 'block';
+    });
+    aboutClose.addEventListener('click', () => {
+      aboutModal.style.display = 'none';
+    });
 
-        const sampleOutputs = [
-            "Hello, how are you?",
-            "Thank you for using GestureText",
-            "This is a demonstration of real-time gesture recognition",
-            "The quick brown fox jumps over the lazy dog",
-            "Gesture recognition technology is transforming communication"
-        ];
+    // Settings modal
+    settingsBtn.addEventListener('click', () => {
+      settingsModal.style.display = 'block';
+    });
+    settingsClose.addEventListener('click', () => {
+      settingsModal.style.display = 'none';
+    });
 
-        let recognitionInterval;
-        let stream;
+    // Dark mode toggle
+    darkModeBtn.addEventListener('click', () => {
+      document.body.classList.toggle('dark-mode');
+    });
 
-        startCameraBtn.addEventListener('click', async () => {
-            try {
-                stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-                cameraView.srcObject = stream;
-
-                cameraPlaceholder.classList.add('hidden');
-                cameraView.classList.remove('hidden');
-                startCameraBtn.classList.add('hidden');
-                stopCameraBtn.classList.remove('hidden');
-                toggleCameraBtn.classList.remove('hidden');
-                captureBtn.classList.remove('hidden');
-
-                statusIndicator.classList.remove('bg-gray-400');
-                statusIndicator.classList.add('bg-green-400');
-                statusText.textContent = "Camera active - recognizing gestures";
-
-                let outputIndex = 0;
-                recognitionInterval = set
+    // Close modals when clicking outside
+    window.addEventListener('click', (event) => {
+      if (event.target === aboutModal) {
+        aboutModal.style.display = 'none';
+      }
+      if (event.target === settingsModal) {
+        settingsModal.style.display = 'none';
+      }
+    });
+  </script>
+</body>
+</html>
