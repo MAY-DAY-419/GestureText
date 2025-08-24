@@ -24,8 +24,8 @@ darkModeToggle.addEventListener('click', () => {
 // --- Camera Simulation ---
 const startCameraBtn = document.getElementById('startCameraBtn');
 const stopCameraBtn = document.getElementById('stopCameraBtn');
-const toggleCameraBtn = document.getElementById('toggleCameraBtn');
-const captureBtn = document.getElementById('captureBtn');
+// const toggleCameraBtn = document.getElementById('toggleCameraBtn');
+// const captureBtn = document.getElementById('captureBtn');
 const cameraView = document.getElementById('cameraView');
 const cameraCanvas = document.getElementById('cameraCanvas');
 const cameraPlaceholder = document.getElementById('cameraPlaceholder');
@@ -56,8 +56,8 @@ startCameraBtn.addEventListener('click', async () => {
     cameraView.classList.remove('hidden');
     startCameraBtn.classList.add('hidden');
     stopCameraBtn.classList.remove('hidden');
-    toggleCameraBtn.classList.remove('hidden');
-    captureBtn.classList.remove('hidden');
+    // toggleCameraBtn.classList.remove('hidden');
+    // captureBtn.classList.remove('hidden');
 
     // Update status
     statusIndicator.classList.replace('bg-gray-400', 'bg-green-400');
@@ -81,24 +81,24 @@ stopCameraBtn.addEventListener('click', () => {
   cameraView.classList.add('hidden');
   startCameraBtn.classList.remove('hidden');
   stopCameraBtn.classList.add('hidden');
-  toggleCameraBtn.classList.add('hidden');
-  captureBtn.classList.add('hidden');
+  // toggleCameraBtn.classList.add('hidden');
+  // captureBtn.classList.add('hidden');
 
   // Update status
   statusIndicator.classList.replace('bg-green-400', 'bg-gray-400');
   statusText.textContent = "Camera stopped";
 });
 
-toggleCameraBtn.addEventListener('click', () => {
-  cameraView.classList.toggle('hidden');
-  cameraCanvas.classList.toggle('hidden');
-});
+// toggleCameraBtn.addEventListener('click', () => {
+//   cameraView.classList.toggle('hidden');
+//   cameraCanvas.classList.toggle('hidden');
+// });
 
-captureBtn.addEventListener('click', () => {
-  const context = cameraCanvas.getContext('2d');
-  cameraCanvas.width = cameraView.videoWidth;
-  cameraCanvas.height = cameraView.videoHeight;
-  context.drawImage(cameraView, 0, 0, cameraCanvas.width, cameraCanvas.height);
+// captureBtn.addEventListener('click', () => {
+//   const context = cameraCanvas.getContext('2d');
+//   cameraCanvas.width = cameraView.videoWidth;
+//   cameraCanvas.height = cameraView.videoHeight;
+//   context.drawImage(cameraView, 0, 0, cameraCanvas.width, cameraCanvas.height);
 
   // Show canvas temporarily
   cameraView.classList.add('hidden');
