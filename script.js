@@ -68,7 +68,6 @@ startCameraBtn.addEventListener('click', async () => {
   }
 });
 
-
 stopCameraBtn.addEventListener('click', () => {
   // Stop the camera stream
   const stream = cameraView.srcObject;
@@ -90,13 +89,18 @@ stopCameraBtn.addEventListener('click', () => {
   statusText.textContent = "Camera stopped";
 });
 
-
 toggleCameraBtn.addEventListener('click', () => {
   cameraView.classList.toggle('hidden');
   cameraCanvas.classList.toggle('hidden');
 });
 
 captureBtn.addEventListener('click', () => {
+  const context = cameraCanvas.getContext('2d');
+  cameraCanvas.width = cameraView.videoWidth;
+  cameraCanvas.height = cameraView.videoHeight;
+  context.drawImage(cameraView, 0, 0, cameraCanvas.width, cameraCanvas.height);
+
+  // Show canvas temporarily
   cameraView.classList.add('hidden');
   cameraCanvas.classList.remove('hidden');
   setTimeout(() => {
@@ -118,4 +122,3 @@ clearTextBtn.addEventListener('click', () => { outputText.textContent = ""; });
 window.addEventListener('resize', () => {
   // Future responsive adjustments can go here
 });
-
