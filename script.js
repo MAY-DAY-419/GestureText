@@ -45,25 +45,39 @@ const sampleOutputs = [
 
 let recognitionInterval;
 
-startCameraBtn.addEventListener('click', () => {
-  cameraPlaceholder.classList.add('hidden');
-  cameraView.classList.remove('hidden');
-  startCameraBtn.classList.add('hidden');
-  stopCameraBtn.classList.remove('hidden');
-  toggleCameraBtn.classList.remove('hidden');
-  captureBtn.classList.remove('hidden');
+startCameraBtn.addEventListener('click', async () => {
+  try {
+    // Request camera access
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    cameraView.srcObject = stream;
 
-  statusIndicator.classList.replace('bg-gray-400', 'bg-green-400');
-  statusText.textContent = "Camera active - recognizing gestures";
+    // Show video and controls
+    cameraPlaceholder.classList.add('hidden');
+    cameraView.classList.remove('hidden');
+    startCameraBtn.classList.add('hidden');
+    stopCameraBtn.classList.remove('hidden');
+    toggleCameraBtn.classList.remove('hidden');
+    captureBtn.classList.remove('hidden');
 
-  let outputIndex = 0;
-  recognitionInterval = setInterval(() => {
-    outputText.textContent = sampleOutputs[outputIndex];
-    outputIndex = (outputIndex + 1) % sampleOutputs.length;
-  }, 3000);
+    // Update status
+    statusIndicator.classList.replace('bg-gray-400', 'bg-green-400');
+    statusText.textContent = "Camera active - live feed running";
+  } catch (err) {
+    console.error("Error accessing camera:", err);
+    statusText.textContent = "Camera access denied";
+  }
 });
 
+
 stopCameraBtn.addEventListener('click', () => {
+  // Stop the camera stream
+  const stream = cameraView.srcObject;
+  if (stream) {
+    stream.getTracks().forEach(track => track.stop());
+  }
+  cameraView.srcObject = null;
+
+  // Reset UI
   cameraPlaceholder.classList.remove('hidden');
   cameraView.classList.add('hidden');
   startCameraBtn.classList.remove('hidden');
@@ -71,11 +85,11 @@ stopCameraBtn.addEventListener('click', () => {
   toggleCameraBtn.classList.add('hidden');
   captureBtn.classList.add('hidden');
 
+  // Update status
   statusIndicator.classList.replace('bg-green-400', 'bg-gray-400');
   statusText.textContent = "Camera stopped";
-
-  clearInterval(recognitionInterval);
 });
+
 
 toggleCameraBtn.addEventListener('click', () => {
   cameraView.classList.toggle('hidden');
