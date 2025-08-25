@@ -122,3 +122,56 @@ clearTextBtn.addEventListener('click', () => { outputText.textContent = ""; });
 window.addEventListener('resize', () => {
   // Future responsive adjustments can go here
 });
+// --- Mediapipe Hands Integration ---
+
+// Setup Mediapipe Hands
+const hands = new Hands({
+  locateFile: (file) => {
+    return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+  }
+});
+
+// Hands configuration (you can tweak these)
+hands.setOptions({
+  maxNumHands: 2,        // Detect up to 2 hands
+  modelComplexity: 1,    // 0 = lite, 1 = full
+  minDetectionConfidence: 0.7,
+  minTrackingConfidence: 0.7
+});
+
+const ctx = cameraCanvas.getContext("2d");
+
+// When hands are detected
+hands.onResults((results) => {
+  // Clear previous frame
+  ctx.clearRect(0, 0, cameraCanvas.width, cameraCanvas.height);
+
+  // Draw the video frame
+  ctx.drawImage(results.image, 0, 0, cameraCanvas.width, cameraCanvas.height);
+
+  // Draw detected hand landmarks
+  if (results.multiHandLandmarks) {
+    for (const landmarks of results.multiHandLandmarks) {
+      drawConnectors(ctx, landmarks, HAND_CONNECTIONS, { color: "#00FF00", lineWidth: 3 });
+      drawLandmarks(ctx, landmarks, { color: "#FF0000", lineWidth: 2 });
+    }
+  }
+});
+
+// Use Mediapipe's Camera helper to connect video -> Hands
+let camera;
+
+startCameraBtn.addEventListener("click", async () => {
+  if (!camera) {
+    camera = new Camera(cameraView, {
+      onFrame: async () => {
+        await hands.send({ image: cameraView });
+      },
+      width: 640,
+      height: 480
+    });
+  }
+  camera.start();
+  cameraCanvas.classList.remove("hidden"); // show canvas overlay
+});
+
