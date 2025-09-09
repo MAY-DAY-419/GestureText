@@ -133,7 +133,7 @@ const hands = new Hands({
 
 // Hands configuration (you can tweak these)
 hands.setOptions({
-  maxNumHands: 2,        // Detect up to 2 hands
+  maxNumHands: 3,        // Detect up to 2 hands
   modelComplexity: 1,    // 0 = lite, 1 = full
   minDetectionConfidence: 0.7,
   minTrackingConfidence: 0.7
